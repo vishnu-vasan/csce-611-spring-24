@@ -104,13 +104,12 @@
 #include "console.H"
 #include "utils.H"
 #include "assert.H"
-#include <stddef.h>
 
 /*--------------------------------------------------------------------------*/
 /* DATA STRUCTURES */
 /*--------------------------------------------------------------------------*/
 
-ContFramePool* ContFramePool::head = NULL;
+ContFramePool* ContFramePool::head = NULL; 
 
 /*--------------------------------------------------------------------------*/
 /* CONSTANTS */

@@ -39,40 +39,40 @@
 00000000000i[USBCTL] Pluggable USB devices
 00000000000i[USBCTL]   disk cdrom mouse tablet keypad keyboard hub floppy
 00000000000i[USBCTL]   printer
-00000000000i[MEM0  ] allocated memory at 0x134000000. after alignment, vector=0x134000000
+00000000000i[MEM0  ] allocated memory at 0x123200000. after alignment, vector=0x123200000
 00000000000i[MEM0  ] 32.00MB
 00000000000i[MEM0  ] mem block size = 0x00020000, blocks=256
 00000000000i[MEM0  ] rom at 0xfffe0000/131072 ('BIOS-bochs-latest')
 00000000000i[DEV   ] will paste characters every 100 iodev timer ticks
-00000000000i[      ] lt_dlhandle is 0x600003b19440
+00000000000i[      ] lt_dlhandle is 0x6000027fc660
 00000000000i[PLUGIN] loaded plugin libbx_pci.so
-00000000000i[      ] lt_dlhandle is 0x600003b193e0
+00000000000i[      ] lt_dlhandle is 0x6000027fc5a0
 00000000000i[PLUGIN] loaded plugin libbx_pci2isa.so
-00000000000i[      ] lt_dlhandle is 0x600003b19320
+00000000000i[      ] lt_dlhandle is 0x6000027fc720
 00000000000i[PLUGIN] loaded plugin libbx_usb_uhci.so
-00000000000i[      ] lt_dlhandle is 0x600003b18f60
+00000000000i[      ] lt_dlhandle is 0x6000027fc7e0
 00000000000i[PLUGIN] loaded plugin libbx_acpi.so
-00000000000i[      ] lt_dlhandle is 0x600003b19560
+00000000000i[      ] lt_dlhandle is 0x6000027fc8a0
 00000000000i[PLUGIN] loaded plugin libbx_hpet.so
-00000000000i[      ] lt_dlhandle is 0x600003b19620
+00000000000i[      ] lt_dlhandle is 0x6000027fc960
 00000000000i[PLUGIN] loaded plugin libbx_cmos.so
-00000000000i[      ] lt_dlhandle is 0x600003b196e0
+00000000000i[      ] lt_dlhandle is 0x6000027fca20
 00000000000i[PLUGIN] loaded plugin libbx_dma.so
-00000000000i[      ] lt_dlhandle is 0x600003b0a040
+00000000000i[      ] lt_dlhandle is 0x6000027eedc0
 00000000000i[PLUGIN] loaded plugin libbx_pic.so
-00000000000i[      ] lt_dlhandle is 0x600003b0a160
+00000000000i[      ] lt_dlhandle is 0x6000027eee80
 00000000000i[PLUGIN] loaded plugin libbx_pit.so
-00000000000i[      ] lt_dlhandle is 0x600003b0a220
+00000000000i[      ] lt_dlhandle is 0x6000027eef40
 00000000000i[PLUGIN] loaded plugin libbx_vga.so
-00000000000i[      ] lt_dlhandle is 0x600003b0a2e0
+00000000000i[      ] lt_dlhandle is 0x6000027ef000
 00000000000i[PLUGIN] loaded plugin libbx_floppy.so
-00000000000i[      ] lt_dlhandle is 0x600003b0a3a0
+00000000000i[      ] lt_dlhandle is 0x6000027ef0c0
 00000000000i[PLUGIN] loaded plugin libbx_ioapic.so
-00000000000i[      ] lt_dlhandle is 0x600003b0a460
+00000000000i[      ] lt_dlhandle is 0x6000027ef180
 00000000000i[PLUGIN] loaded plugin libbx_keyboard.so
-00000000000i[      ] lt_dlhandle is 0x600003b0a520
+00000000000i[      ] lt_dlhandle is 0x6000027ef240
 00000000000i[PLUGIN] loaded plugin libbx_harddrv.so
-00000000000i[      ] lt_dlhandle is 0x600003b0a5e0
+00000000000i[      ] lt_dlhandle is 0x6000027ef300
 00000000000i[PLUGIN] loaded plugin libbx_pci_ide.so
 00000000000i[PLUGIN] init_dev of 'pci' plugin device by virtual method
 00000000000i[DEV   ] i440FX PMC present at device 0, function 0
@@ -257,24 +257,24 @@
 00001782275i[BIOS  ] ACPI tables: RSDP addr=0x000fb970 ACPI DATA addr=0x01ff0000 size=0x9d8
 00001801808i[PCI   ] i440FX PMC write to PAM register 59 (TLB Flush)
 00001802820i[BIOS  ] bios_table_cur_addr: 0x000fb994
-01773908625i[BIOS  ] Booting from 0000:7c00
-56157668000p[SDL2  ] >>PANIC<< POWER button turned off.
-56157668000i[CPU0  ] CPU is in protected mode (active)
-56157668000i[CPU0  ] CS.mode = 32 bit
-56157668000i[CPU0  ] SS.mode = 32 bit
-56157668000i[CPU0  ] EFER   = 0x00000000
-56157668000i[CPU0  ] | EAX=00000000  EBX=00026260  ECX=000b8000  EDX=000003d4
-56157668000i[CPU0  ] | ESP=00102f68  EBP=00102f68  ESI=000263d3  EDI=000263df
-56157668000i[CPU0  ] | IOPL=0 id vip vif ac vm rf nt of df if tf sf zf af pf cf
-56157668000i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
-56157668000i[CPU0  ] |  CS:0008( 0001| 0|  0) 00000000 ffffffff 1 1
-56157668000i[CPU0  ] |  DS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-56157668000i[CPU0  ] |  SS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-56157668000i[CPU0  ] |  ES:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-56157668000i[CPU0  ] |  FS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-56157668000i[CPU0  ] |  GS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-56157668000i[CPU0  ] | EIP=00100032 (00100032)
-56157668000i[CPU0  ] | CR0=0x60000011 CR2=0x00000000
-56157668000i[CPU0  ] | CR3=0x00000000 CR4=0x00000000
-56157668000i[CMOS  ] Last time is 946695239 (Fri Dec 31 20:53:59 1999)
-56157668000i[SIM   ] quit_sim called with exit code 1
+01677695515i[BIOS  ] Booting from 0000:7c00
+02855848000p[SDL2  ] >>PANIC<< POWER button turned off.
+02855848000i[CPU0  ] CPU is in protected mode (active)
+02855848000i[CPU0  ] CS.mode = 32 bit
+02855848000i[CPU0  ] SS.mode = 32 bit
+02855848000i[CPU0  ] EFER   = 0x00000000
+02855848000i[CPU0  ] | EAX=00000000  EBX=00026260  ECX=000b8fa0  EDX=000b03d4
+02855848000i[CPU0  ] | ESP=00103fc0  EBP=00103fe8  ESI=000263d3  EDI=000263df
+02855848000i[CPU0  ] | IOPL=0 id vip vif ac vm rf nt of df if tf sf zf af PF cf
+02855848000i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
+02855848000i[CPU0  ] |  CS:0008( 0001| 0|  0) 00000000 ffffffff 1 1
+02855848000i[CPU0  ] |  DS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+02855848000i[CPU0  ] |  SS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+02855848000i[CPU0  ] |  ES:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+02855848000i[CPU0  ] |  FS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+02855848000i[CPU0  ] |  GS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+02855848000i[CPU0  ] | EIP=00100344 (00100344)
+02855848000i[CPU0  ] | CR0=0x60000011 CR2=0x00000000
+02855848000i[CPU0  ] | CR3=0x00000000 CR4=0x00000000
+02855848000i[CMOS  ] Last time is 946681913 (Fri Dec 31 17:11:53 1999)
+02855848000i[SIM   ] quit_sim called with exit code 1
