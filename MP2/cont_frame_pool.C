@@ -171,26 +171,26 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
     n_free_frames = _n_frames;
     info_frame_no = _info_frame_no;
 
-    // If _info_frame_no is zero then we keep management info in the first frame, else we use the provided frame to keep management info
+    // If _info_frame_no is zero, management info is stored in the first frame; otherwise, the provided frame is used.
     if(info_frame_no == 0)
         bitmap = (unsigned char *)(base_frame_no * FRAME_SIZE);
     else
         bitmap = (unsigned char *)(info_frame_no * FRAME_SIZE);
     
-    //bitmap must fill in the frame
+    // The bitmap needs to occupy the entire frame
     assert((n_frames % 8) == 0);
 
-    //initializing all bits in the bitmap as free
+    // setting all bits in the bitmap to represent a free state
     for(int f_no=0;f_no<_n_frames;f_no++)
         set_state(f_no,FrameState::Free);
 
-    // marking the first frame in the kernel pool as being used
+    // sesignating the first frame in the kernel pool as used
     if(_info_frame_no == 0){
         set_state(0, FrameState::Used);
         n_free_frames -= 1;
     }
 
-    // LinkedList for the Pool
+    // Singly LinkedList for the Pool
     if(head == NULL){
         head = this;
         head->next = NULL;
@@ -202,33 +202,33 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
         p = this;
         p->next = NULL;
     }
-    Console::puts("Frame pool now initialized and ready");
+    Console::puts("Frame pool now initialized and ready.\n");
 }
 
 unsigned long ContFramePool::get_frames(unsigned int _n_frames)
 {
     // TODO: IMPLEMENTATION NEEEDED! -> NOW IMPLEMENTED
     if(_n_frames > n_free_frames){
-        Console::puts("Cannot allocated frames more than the available number.");
+        Console::puts("Cannot allocate frames more than the available number.\n");
         assert(false);
     }
     unsigned int f_no = 0;
     unsigned int start_frame = base_frame_no;
 
-    // check which frames are in use
+    // checking which frames are in use
     p:
     while(get_state(f_no) == FrameState::Used)
         f_no += 1;
 
     start_frame = base_frame_no + f_no;
-    // check if frames are available after the free frame
+    // checking if frames are available after the free frame
     for(unsigned int i=f_no;i<(_n_frames + f_no);i++){
         if(!((start_frame + _n_frames) <= (base_frame_no + n_frames))){
             Console::puts("Continuous Free Frames are NOT AVAILABLE. \n");
             assert(false);
         }
         if(get_state(i) == FrameState::Used){
-            // check for max frames available
+            // checking for maximum number of frames available
             if(i < base_frame_no + n_frames){
                 f_no = i;
                 // goto p and start the search for next free frame
@@ -273,7 +273,7 @@ void ContFramePool::release_frames(unsigned long _first_frame_no)
     p = head;
     while(p != NULL){
         if((_first_frame_no >= p->base_frame_no) && (_first_frame_no <= (p->base_frame_no + p->n_frames - 1))){
-            // pass first frame number to release frames from that frame
+            // Provide the first frame number to release frames starting from that frame.
             p->release_frame_range(_first_frame_no);
             break;
         }
@@ -294,7 +294,7 @@ void ContFramePool::release_frame_range(unsigned long _first_frame_no ) {
         frame_range += 1;
         // increment the number of free frames that are now available
         n_free_frames += 1;
-        //stop releasing frames once we encounter HoS frame
+        //stop releasing frames upon encountering HoS frame
         if(get_state(frame_range) == FrameState::HoS)
             break;
     }
