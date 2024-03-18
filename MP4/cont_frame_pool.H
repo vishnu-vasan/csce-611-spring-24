@@ -20,7 +20,7 @@
 /* DEFINES */
 /*--------------------------------------------------------------------------*/
 
-/* -- (none) -- */
+#define DEBUG	0
 
 /*--------------------------------------------------------------------------*/
 /* INCLUDES */
@@ -42,7 +42,13 @@ class ContFramePool {
     
 private:
     /* -- DEFINE YOUR CONT FRAME POOL DATA STRUCTURE(s) HERE. */
-    
+    unsigned char * bitmap;
+    unsigned int n_free_frames;
+    unsigned long base_frame_no;
+    unsigned long n_frames;
+    unsigned long info_frame_no;
+    ContFramePool * next;
+
     
     
     /* ---- STATE MANAGEMENT */
@@ -57,7 +63,7 @@ public:
 
     // The frame size is the same as the page size, duh...    
     static const unsigned int FRAME_SIZE = Machine::PAGE_SIZE; 
-
+    static ContFramePool *head;
     ContFramePool(unsigned long _base_frame_no,
                   unsigned long _n_frames,
                   unsigned long _info_frame_no);
@@ -104,7 +110,7 @@ public:
      This function must first identify the correct frame pool and then call the frame
      pool's release_frame function.
      */
-    
+    void release_frame_range(unsigned long _first_frame_no);
     static unsigned long needed_info_frames(unsigned long _n_frames);
     /*
      Returns the number of frames needed to manage a frame pool of size _n_frames.

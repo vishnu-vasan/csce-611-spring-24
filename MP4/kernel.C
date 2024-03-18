@@ -221,7 +221,7 @@ int main() {
        (COMMENT OUT THE FOLLOWING LINE TO TEST THE VM Pools! */
 #define _TEST_PAGE_TABLE_
 
-#ifdef _TEST_PAGE_TABLE_
+#ifndef _TEST_PAGE_TABLE_
 
     /* WE TEST JUST THE PAGE TABLE */
     GeneratePageTableMemoryReferences(FAULT_ADDR, NACCESS);
