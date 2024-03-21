@@ -36,7 +36,7 @@
 /* Forward declaration of class PageTable */
 /* We need this to break a circular include sequence. */
 class PageTable;
-
+// structure used for holding information of each region in virtual memory
 struct alloc_region_info{
    unsigned long base_address;
    unsigned long length;

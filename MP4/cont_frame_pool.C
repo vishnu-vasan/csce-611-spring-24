@@ -2,8 +2,8 @@
  File: ContFramePool.C
  
  Author: Vishnuvasan Raghuraman
- Date  : 02/23/2024
- 
+ Date  : 02/11/2024
+ Modified: 03/17/2024
  */
 
 /*--------------------------------------------------------------------------*/
@@ -109,7 +109,7 @@
 /* DATA STRUCTURES */
 /*--------------------------------------------------------------------------*/
 
-ContFramePool* ContFramePool::head = NULL; 
+/* -- (none) -- */
 
 /*--------------------------------------------------------------------------*/
 /* CONSTANTS */
@@ -121,189 +121,280 @@ ContFramePool* ContFramePool::head = NULL;
 /* FORWARDS */
 /*--------------------------------------------------------------------------*/
 
-/* -- (none) -- */
+ContFramePool * ContFramePool::head = NULL;
 
 /*--------------------------------------------------------------------------*/
 /* METHODS FOR CLASS   C o n t F r a m e P o o l */
 /*--------------------------------------------------------------------------*/
 
-// Getter here
-ContFramePool::FrameState ContFramePool::get_state(unsigned long _frame_no)
-{
-    unsigned int bitmap_index = _frame_no;
-    unsigned char mask = 0x80;
-    unsigned char mask_head = 0xC0;
-
-    if((bitmap[bitmap_index] & mask) == 0)
-        return FrameState::Used;
-    else if((bitmap[bitmap_index] & mask_head) == 0)
-        return FrameState::HoS;
-    else
-        return FrameState::Free;
-}
-// Setter here
-void ContFramePool::set_state(unsigned long _frame_no, FrameState _state)
-{
-    unsigned int bitmap_index = _frame_no;
-    unsigned char mask = 0x80;
-    unsigned char mask_head = 0xC0;
-
-    switch(_state){
-        case FrameState::Used:
-            bitmap[bitmap_index] ^= mask;
-            break;
-        case FrameState::Free:
-            bitmap[bitmap_index] = 0xFF;
-            break;
-        case FrameState::HoS:
-            bitmap[bitmap_index] ^= mask_head;
-            break;
-    }
-}
-
 ContFramePool::ContFramePool(unsigned long _base_frame_no,
                              unsigned long _n_frames,
-                             unsigned long _info_frame_no)
-{
-    // TODO: IMPLEMENTATION NEEEDED! -> NOW IMPLEMENTED
-    base_frame_no = _base_frame_no;
-    n_frames = _n_frames;
-    n_free_frames = _n_frames;
-    info_frame_no = _info_frame_no;
-
-    // If _info_frame_no is zero, management info is stored in the first frame; otherwise, the provided frame is used.
-    if(info_frame_no == 0)
-        bitmap = (unsigned char *)(base_frame_no * FRAME_SIZE);
-    else
-        bitmap = (unsigned char *)(info_frame_no * FRAME_SIZE);
-    
-    // The bitmap needs to occupy the entire frame
-    assert((n_frames % 8) == 0);
-
-    // setting all bits in the bitmap to represent a free state
-    for(int f_no=0;f_no<_n_frames;f_no++)
-        set_state(f_no,FrameState::Free);
-
-    // sesignating the first frame in the kernel pool as used
-    if(_info_frame_no == 0){
-        set_state(0, FrameState::Used);
-        n_free_frames -= 1;
+                             unsigned long _info_frame_no){
+	base_frame_no = _base_frame_no;
+	nframes = _n_frames;
+	info_frame_no = _info_frame_no;
+	nFreeFrames = _n_frames;
+	
+	// If _info_frame_no is zero then we keep management info in the first
+    // frame, else we use the provided frame to keep management info
+	if(info_frame_no == 0)	{
+        bitmap = (unsigned char *) (base_frame_no * FRAME_SIZE);
     }
-
-    // Singly LinkedList for the Pool
-    if(head == NULL){
-        head = this;
-        head->next = NULL;
+	else	{
+        bitmap = (unsigned char *) (info_frame_no * FRAME_SIZE);
     }
-    else{
-        ContFramePool *p = NULL;
-        for(p=head;p->next!=NULL;p=p->next);
-        p->next = this;
-        p = this;
-        p->next = NULL;
+	
+	assert( (nframes%8) == 0 );
+	
+	// Initializing all bits in bitmap to zero
+	for(int fno = 0; fno < _n_frames; fno++)	{
+        set_state(fno, FrameState::Free);
     }
-    Console::puts("Frame pool now initialized and ready.\n");
+	
+	// Mark the first frame as being used if it is being used
+    if( _info_frame_no == 0 )	{
+		set_state(0, FrameState::Used);
+        nFreeFrames = nFreeFrames - 1;
+    }
+	
+	// Creating a linked list and adding a new frame pool
+	if( head == NULL )	{
+		head = this;
+		head->next = NULL;
+	}
+	else	{
+		// Adding new frame pool to existing linked list
+		ContFramePool * temp = NULL;
+		for(temp = head; temp->next != NULL; temp = temp->next);
+		temp->next = this;
+		temp = this;
+		temp->next = NULL;
+	}
+	
+	Console::puts("Frame Pool initialized\n");
 }
 
-unsigned long ContFramePool::get_frames(unsigned int _n_frames)
-{
-    // TODO: IMPLEMENTATION NEEEDED! -> NOW IMPLEMENTED
-    if(_n_frames > n_free_frames){
-        Console::puts("Cannot allocate frames more than the available number.\n");
-        assert(false);
-    }
-    unsigned int f_no = 0;
-    unsigned int start_frame = base_frame_no;
 
-    // checking which frames are in use
-    p:
-    while(get_state(f_no) == FrameState::Used)
-        f_no += 1;
+ContFramePool::FrameState ContFramePool::get_state(unsigned long _frame_no){
+	unsigned int bitmap_row_index = (_frame_no / 4);
+	unsigned int bitmap_col_index = ((_frame_no % 4)*2);
+	unsigned char mask_result = (bitmap[bitmap_row_index] >> (bitmap_col_index)) & 0b11;
+	FrameState state_output = FrameState::Used;
 
-    start_frame = base_frame_no + f_no;
-    // checking if frames are available after the free frame
-    for(unsigned int i=f_no;i<(_n_frames + f_no);i++){
-        if(!((start_frame + _n_frames) <= (base_frame_no + n_frames))){
-            Console::puts("Continuous Free Frames are NOT AVAILABLE. \n");
-            assert(false);
-        }
-        if(get_state(i) == FrameState::Used){
-            // checking for maximum number of frames available
-            if(i < base_frame_no + n_frames){
-                f_no = i;
-                // goto p and start the search for next free frame
-                goto p;
-            }
-            else{
-                Console::puts("Continuous Free Frames are NOT AVAILABLE. \n");
-                assert(false);
-            }
-        }
-    }
-    // allocate frames continuously
-    unsigned int k = _n_frames;
-    // mark the frame currently used in bitmap as HoS or as used
-    while(k != 0){
-        if(k == _n_frames)
-            set_state(f_no, FrameState::HoS);
-        else
-            set_state(f_no, FrameState::Used);
-        n_free_frames -= 1;
-        f_no += 1;
-        k -= 1;
-    }
-    return start_frame;
+#if DEBUG
+		Console::puts("get_state row index ="); Console::puti(bitmap_row_index); Console::puts("\n");
+		Console::puts("get_state col index ="); Console::puti(bitmap_col_index); Console::puts("\n");
+		Console::puts("get_state bitmap value = "); Console::puti(bitmap[bitmap_row_index]); Console::puts("\n");
+		Console::puts("get_state mask result ="); Console::puti(mask_result); Console::puts("\n");
+#endif
+
+	if( mask_result == 0b00 )	{
+		state_output = FrameState::Free;
+#if DEBUG
+		Console::puts("get_state state_output = Free\n");
+#endif
+	
+	}
+	else if( mask_result == 0b01 )
+	{
+		state_output = FrameState::Used;
+#if DEBUG
+		Console::puts("get_state state_output = Used\n");
+#endif
+	}
+	else if( mask_result == 0b11 )	{
+		state_output = FrameState::HoS;
+#if DEBUG
+		Console::puts("get_state state_output = HoS\n");
+#endif
+	}
+	return state_output;
 }
+
+
+void ContFramePool::set_state(unsigned long _frame_no, FrameState _state){	
+	unsigned int bitmap_row_index = (_frame_no / 4);
+	unsigned int bitmap_col_index = ((_frame_no % 4)*2);
+	
+#if DEBUG
+		Console::puts("set_state row index ="); Console::puti(bitmap_row_index); Console::puts("\n");
+		Console::puts("set_state col index ="); Console::puti(bitmap_col_index); Console::puts("\n");
+		Console::puts("set_state bitmap value before = "); Console::puti(bitmap[bitmap_row_index]); Console::puts("\n");
+#endif
+	
+	switch(_state)	{
+		case FrameState::Free:
+			bitmap[bitmap_row_index] &= ~(3<<bitmap_col_index);
+			break;
+		case FrameState::Used:
+			bitmap[bitmap_row_index] ^= (1<<bitmap_col_index);
+			break;
+		case FrameState::HoS:
+			bitmap[bitmap_row_index] ^= (3<<bitmap_col_index);
+			break;
+    }
+
+#if DEBUG
+		Console::puts("set_state bitmap value after = "); Console::puti(bitmap[bitmap_row_index]); Console::puts("\n");
+#endif
+
+	return;
+}
+
+
+unsigned long ContFramePool::get_frames(unsigned int _n_frames){	
+	if( (_n_frames > nFreeFrames) || (_n_frames > nframes) )
+	{
+		Console::puts("ContFramePool::get_frames Invalid Request - Not enough free frames available!\n ");
+		assert(false);
+		return 0;
+	}
+	
+	unsigned int index = 0;
+	unsigned int free_frames_start = 0;
+	unsigned int available_flag = 0;
+	unsigned int free_frames_count = 0;
+	unsigned int output = 0;
+	
+	for( index = 0; index < nframes; index++)	{
+		if( get_state(index) == FrameState::Free ){
+			if(free_frames_count == 0){
+				// saving free frames start frame_no
+				free_frames_start = index;
+			}
+			
+			free_frames_count = free_frames_count + 1;
+			
+			// checking if free_frames_count is equal to the required num of frames
+			if( free_frames_count == _n_frames ){
+				available_flag = 1;
+				break;
+			}
+		}
+		else{
+			free_frames_count = 0;
+		}
+	}
+	
+	if( available_flag == 1 ){
+		// contigous frames are available from free_frames_start
+		for( index = free_frames_start; index < (free_frames_start + _n_frames); index++ ){
+			if( index == free_frames_start ){
+#if DEBUG
+		Console::puts("get_frames Operation = HoS\n");
+#endif
+				set_state( index, FrameState::HoS);
+			}
+			else
+			{
+#if DEBUG
+		Console::puts("get_frames Operation = Used\n");
+#endif
+				set_state( index, FrameState::Used );
+			}
+		}
+		
+		nFreeFrames = nFreeFrames - _n_frames;
+		output = free_frames_start + base_frame_no;
+	}
+	else{
+		output = 0;
+		Console::puts("ContframePool::get_frames - Continuous free frames not available\n");
+		assert(false);
+	}
+	
+	return output;
+}
+
 
 void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,
-                                      unsigned long _n_frames)
-{
-    // TODO: IMPLEMENTATION NEEEDED! -> NOW IMPLEMENTED
-    for(int f_no=_base_frame_no; f_no<_base_frame_no+_n_frames;f_no++){
-        unsigned int frame_range = (f_no - base_frame_no);
-        set_state(frame_range, FrameState::HoS);
-    }
-    n_free_frames = n_free_frames - _n_frames;
+                                      unsigned long _n_frames){	
+	if(	(_base_frame_no + _n_frames ) > (base_frame_no + nframes) || (_base_frame_no < base_frame_no) ){
+		Console::puts("ContframePool::mark_inaccessible - Range out of bounds. Cannot mark inacessible.\n");
+		assert(false);
+		return;
+	}
+	
+#if DEBUG
+	Console::puts("Mark Inaccessible: _base_frame_no = "); Console::puti(_base_frame_no);
+	Console::puts(" _n_frames ="); Console::puti(_n_frames);Console::puts("\n");
+#endif
+
+	unsigned int index = 0;
+	for( index = _base_frame_no; index < (_base_frame_no + _n_frames); index++ ){
+		if( get_state(index - base_frame_no) == FrameState::Free ){
+			if( index == _base_frame_no ){
+				set_state( (index - base_frame_no), FrameState::HoS);
+			}
+			else{
+				set_state( (index - base_frame_no), FrameState::Used );
+			}
+			
+			nFreeFrames = nFreeFrames - 1;
+		}
+#if DEBUG
+		else{
+			Console::puts("ContframePool::mark_inaccessible - Frame = "); Console::puti(index); Console::puts(" already marked inaccessible.\n");
+			assert(false);
+		}
+#endif
+	}
+	return;
 }
 
-void ContFramePool::release_frames(unsigned long _first_frame_no)
-{
-    // TODO: IMPLEMENTATION NEEEDED! -> NOW IMPLEMENTED
-    ContFramePool *p = NULL;
-    p = head;
-    while(p != NULL){
-        if((_first_frame_no >= p->base_frame_no) && (_first_frame_no <= (p->base_frame_no + p->n_frames - 1))){
-            // Provide the first frame number to release frames starting from that frame.
-            p->release_frame_range(_first_frame_no);
-            break;
-        }
-        p = p->next;
-    }
+
+void ContFramePool::release_frames(unsigned long _first_frame_no){
+	unsigned int found_frame = 0;
+	ContFramePool * temp = head;
+
+#if DEBUG
+	Console::puts("In release_frames: First frame no ="); Console::puti(_first_frame_no); Console::puts("\n");
+#endif
+
+	// finding which pool the frame belongs to
+	while( temp != NULL ){
+
+#if DEBUG
+		Console::puts("In release_frames: Base frame lower ="); Console::puti(temp->base_frame_no); Console::puts("\n");
+		Console::puts("In release_frames: Base frame upper ="); Console::puti(temp->base_frame_no+temp->nframes); Console::puts("\n");
+#endif
+		if( (_first_frame_no >= temp->base_frame_no) && (_first_frame_no < (temp->base_frame_no + temp->nframes)) ){
+			found_frame = 1;
+			temp->release_frame_range(_first_frame_no);
+			break;
+		}
+		
+		temp = temp->next;
+	}
+	
+	if( found_frame == 0 ){
+		Console::puts("ContframePool::release_frames - Cannot release frame. Frame not found in frame pools.\n");
+		assert(false);
+	}
+	
+	return;
 }
 
-// release frames till the base frame and the next HoS frame
-void ContFramePool::release_frame_range(unsigned long _first_frame_no ) {
-	unsigned long frame_range = (_first_frame_no - base_frame_no);
-
-    if(!(bitmap[frame_range] == 0x3F)){
-        Console::puts("Not a head frame. Cannot release.\n");
-        assert(false);
-    }
-    for(;frame_range<n_frames;){
-        set_state(frame_range, FrameState::Free);
-        frame_range += 1;
-        // increment the number of free frames that are now available
-        n_free_frames += 1;
-        //stop releasing frames upon encountering HoS frame
-        if(get_state(frame_range) == FrameState::HoS)
-            break;
-    }
+void ContFramePool::release_frame_range(unsigned long _first_frame_no){
+	unsigned long index = _first_frame_no + 1;
+	// getting the state of frame
+	if( get_state(_first_frame_no - base_frame_no) == FrameState::HoS ){
+		set_state(_first_frame_no, FrameState::Free);
+		nFreeFrames = nFreeFrames + 1;	// incrementing number of free frames
+		while( get_state( index - base_frame_no) != FrameState::Free ){
+			set_state(index, FrameState::Free); // setting state to free
+			nFreeFrames = nFreeFrames + 1;	// incrementing number of free frames
+			index = index + 1;
+		}
+	}
+	else{
+		Console::puts("ContframePool::release_frame_range - Cannot release frame. Frame state is not HoS.\n");
+		assert(false);
+	}
 }
 
-unsigned long ContFramePool::needed_info_frames(unsigned long _n_frames)
-{
-    // TODO: IMPLEMENTATION NEEEDED! -> NOW IMPLEMENTED
-    // frame size = 4 * 1024
-    // memory -> 8 bits per frame
-    return ((_n_frames * 8) / (4 * 1024 * 8)) + (((_n_frames * 8) % (4 * 1024 * 8)) > 0 ? 1:0);
+
+unsigned long ContFramePool::needed_info_frames(unsigned long _n_frames){	
+	// since 2 bits per frame is being used
+	return ( (_n_frames*2) / (4*1024*8) ) + ( ( (_n_frames*2) % (4*1024*8) ) > 0 ? 1 : 0 );
 }
