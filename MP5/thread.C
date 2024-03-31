@@ -36,10 +36,14 @@
 #include "thread.H"
 
 #include "threads_low.H"
+#include "scheduler.H"
+
 
 /*--------------------------------------------------------------------------*/
 /* EXTERNS */
 /*--------------------------------------------------------------------------*/
+
+extern Scheduler* SYSTEM_SCHEDULER;
 
 Thread * current_thread = 0;
 /* Pointer to the currently running thread. This is used by the scheduler,
@@ -73,16 +77,26 @@ static void thread_shutdown() {
        This is a bit complicated because the thread termination interacts with the scheduler.
      */
 
-    assert(false);
+    // assert(false);
     /* Let's not worry about it for now. 
        This means that we should have non-terminating thread functions. 
     */
+
+    // terminating currently running thread
+	SYSTEM_SCHEDULER->terminate(Thread::CurrentThread());
+	// deleting thread and freeing space
+	delete current_thread;
+	// Current thread gives up on CPU and next thread is selected
+	SYSTEM_SCHEDULER->yield();
 }
 
 static void thread_start() {
      /* This function is used to release the thread for execution in the ready queue. */
     
      /* We need to add code, but it is probably nothing more than enabling interrupts. */
+
+     // enabling interrupts at start of thread
+	 Machine::enable_interrupts();
 }
 
 void Thread::setup_context(Thread_Function _tfunction){
